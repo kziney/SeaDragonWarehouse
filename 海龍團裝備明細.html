@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>海龍巢穴裝備交易站</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:"Microsoft JhengHei",sans-serif;
+}
+
+body{
+background:linear-gradient(
+180deg,
+#82ddff 0%,
+#4fb7eb 20%,
+#2383c8 45%,
+#0a4d7c 75%,
+#03223d 100%
+);
+background-attachment:fixed;
+color:white;
+min-height:100vh;
+overflow-x:hidden;
+}
+
+#snowCanvas{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+pointer-events:none;
+z-index:1;
+}
+
+.container{
+position:relative;
+z-index:2;
+max-width:1400px;
+margin:auto;
+padding:30px;
+}
+
+.dragon-banner{
+text-align:center;
+font-size:18px;
+font-weight:bold;
+letter-spacing:5px;
+margin-bottom:10px;
+color:#eaffff;
+text-shadow:0 0 15px #8fe7ff;
+}
+
+.title{
+font-size:56px;
+font-weight:900;
+text-align:center;
+color:#fff;
+text-shadow:
+0 0 10px #fff,
+0 0 25px #9de9ff,
+0 0 45px #29c5ff,
+0 0 80px #008cff;
+}
+
+.subtitle{
+text-align:center;
+margin:10px 0 30px;
+color:#e6fbff;
+}
+
+.filters{
+display:grid;
+grid-template-columns:2fr 1fr 1fr;
+gap:15px;
+
+background:rgba(255,255,255,.12);
+backdrop-filter:blur(18px);
+
+padding:20px;
+
+border-radius:20px;
+
+border:1px solid rgba(255,255,255,.3);
+
+box-shadow:
+0 0 25px rgba(255,255,255,.15);
+
+margin-bottom:25px;
+}
+
+input,select{
+
+width:100%;
+padding:12px;
+
+border:none;
+
+border-radius:12px;
+
+background:
+rgba(255,255,255,.15);
+
+color:white;
+
+}
+
+input::placeholder{
+color:#dff7ff;
+}
+
+option{
+color:black;
+}
+
+.total{
+
+text-align:center;
+font-size:18px;
+margin-bottom:20px;
+
+color:#ecfbff;
+
+font-weight:bold;
+}
+
+.results{
+
+display:grid;
+
+grid-template-columns:
+repeat(auto-fill,minmax(300px,1fr));
+
+gap:18px;
+
+}
+
+.card{
+
+background:
+linear-gradient(
+180deg,
+rgba(255,255,255,.24),
+rgba(170,220,255,.08)
+);
+
+backdrop-filter:blur(20px);
+
+border:
+1px solid rgba(255,255,255,.4);
+
+border-radius:20px;
+
+padding:20px;
+
+transition:.3s;
+
+}
+
+.card:hover{
+
+transform:
+translateY(-6px)
+scale(1.02);
+
+box-shadow:
+0 0 25px #8be9ff,
+0 0 40px #46cfff;
+
+}
+
+.equip-name{
+
+font-size:24px;
+font-weight:bold;
+
+margin-bottom:15px;
+
+text-shadow:
+0 0 10px white,
+0 0 18px #7de1ff;
+
+}
+
+.badge{
+
+display:inline-block;
+
+padding:5px 12px;
+
+border-radius:20px;
+
+font-size:13px;
+
+font-weight:bold;
+
+margin-bottom:12px;
+
+color:white;
+}
+
+.warrior{background:#d24f4f;}
+.priest{background:#d4af37;}
+.archer{background:#34b863;}
+.sorceress{background:#8b5cff;}
+.loli{background:#46b8ff;}
+.accessory{background:#777;}
+
+.detail{
+margin:8px 0;
+}
+
+.stock{
+
+margin-top:15px;
+
+font-size:22px;
+
+font-weight:bold;
+
+color:#dffcff;
+
+text-shadow:
+0 0 10px #7ee7ff,
+0 0 20px #00c8ff;
+
+}
+
+.empty{
+text-align:center;
+padding:50px;
+font-size:20px;
+}
+
+.footer{
+text-align:center;
+margin-top:40px;
+color:#dff8ff;
+}
+
+@media(max-width:768px){
+
+.title{
+font-size:38px;
+}
+
+.filters{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="snowCanvas"></canvas>
+
+<div class="container">
+
+<div class="dragon-banner">
+❄ SEA DRAGON NEST ❄
+</div>
+
+<div class="title">
+🌊 海龍巢穴裝備交易站 🌊
+</div>
+
+<div class="subtitle">
+Dragon Nest Equipment Warehouse
+</div>
+
+<div class="filters">
+
+<input
+id="keyword"
+type="text"
+placeholder="搜尋裝備名稱">
+
+<select id="jobFilter">
+<option value="">全部職業</option>
+<option>戰士</option>
+<option>牧師</option>
+<option>法師</option>
+<option>弓箭手</option>
+<option>蘿莉</option>
+<option>飾品</option>
+</select>
+
+<select id="partFilter">
+<option value="">全部部位</option>
+<option>手套</option>
+<option>衣服</option>
+<option>盾牌</option>
+<option>十字弓</option>
+<option>戒指</option>
+<option>鞋子</option>
+<option>綁腿</option>
+<option>人偶</option>
+<option>長袍</option>
+<option>臂鎧</option>
+<option>火炮</option>
+<option>盔甲</option>
+<option>法杖</option>
+<option>科巴拉</option>
+<option>副手</option>
+<option>頭盔</option>
+<option>頭帶</option>
+</select>
+
+</div>
+
+<div id="total" class="total"></div>
+
+<div id="results" class="results"></div>
+
+<div class="footer">
+海龍巢穴裝備交易站 v3.0
+</div>
+
+</div>
+
+<script>
+
+const stockData=[
+
+{name:"戰士手套",job:"戰士",part:"手套",qty:1},
+{name:"蘿莉衣服",job:"蘿莉",part:"衣服",qty:2},
+{name:"牧師盾牌",job:"牧師",part:"盾牌",qty:3},
+{name:"弓箭十字弓",job:"弓箭手",part:"十字弓",qty:1},
+{name:"物理戒指",job:"飾品",part:"戒指",qty:2},
+{name:"牧師鞋子",job:"牧師",part:"鞋子",qty:1},
+{name:"弓箭綁腿",job:"弓箭手",part:"綁腿",qty:1},
+{name:"蘿莉手套",job:"蘿莉",part:"手套",qty:1},
+{name:"法師人偶",job:"法師",part:"人偶",qty:1},
+{name:"法師長袍",job:"法師",part:"長袍",qty:2},
+{name:"戰士臂鎧",job:"戰士",part:"臂鎧",qty:2},
+{name:"蘿莉火炮",job:"蘿莉",part:"火炮",qty:1},
+{name:"弓箭手套",job:"弓箭手",part:"手套",qty:1},
+{name:"牧師盔甲",job:"牧師",part:"盔甲",qty:1},
+{name:"法師法杖",job:"法師",part:"法杖",qty:1},
+{name:"蘿莉科巴拉",job:"蘿莉",part:"科巴拉",qty:1},
+{name:"蘿莉副手",job:"蘿莉",part:"副手",qty:1},
+{name:"戰士頭盔",job:"戰士",part:"頭盔",qty:1},
+{name:"弓箭頭帶",job:"弓箭手",part:"頭帶",qty:1},
+{name:"牧師手套",job:"牧師",part:"手套",qty:1}
+
+];
+
+const badge={
+"戰士":"warrior",
+"牧師":"priest",
+"法師":"sorceress",
+"弓箭手":"archer",
+"蘿莉":"loli",
+"飾品":"accessory"
+};
+
+function render(){
+
+const keyword=
+document.getElementById("keyword")
+.value.toLowerCase();
+
+const job=
+document.getElementById("jobFilter").value;
+
+const part=
+document.getElementById("partFilter").value;
+
+const filtered=
+stockData.filter(item=>
+
+item.name.toLowerCase().includes(keyword)
+
+&& (!job || item.job===job)
+
+&& (!part || item.part===part)
+
+);
+
+results.innerHTML="";
+
+if(filtered.length===0){
+
+results.innerHTML=
+'<div class="empty">查無符合的裝備</div>';
+
+return;
+}
+
+const totalQty=
+filtered.reduce(
+(sum,item)=>sum+item.qty,
+0
+);
+
+total.innerHTML=
+`裝備 ${filtered.length} 種 ｜ 庫存 ${totalQty} 件`;
+
+filtered.forEach(item=>{
+
+results.innerHTML+=`
+
+<div class="card">
+
+<div class="equip-name">
+⚔ ${item.name}
+</div>
+
+<div class="badge ${badge[item.job]}">
+${item.job}
+</div>
+
+<div class="detail">
+📦 部位：${item.part}
+</div>
+
+<div class="stock">
+現貨：${item.qty}
+</div>
+
+</div>
+
+`;
+
+});
+
+}
+
+keyword.addEventListener("input",render);
+jobFilter.addEventListener("change",render);
+partFilter.addEventListener("change",render);
+
+render();
+
+const canvas=document.getElementById("snowCanvas");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+}
+
+resize();
+
+window.addEventListener("resize",resize);
+
+const particles=[];
+
+for(let i=0;i<150;i++){
+
+particles.push({
+
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+size:Math.random()*4+1,
+speed:Math.random()*1.4+0.2,
+drift:Math.random()*1-0.5,
+alpha:Math.random()*0.7+0.2
+
+});
+
+}
+
+function animate(){
+
+ctx.clearRect(
+0,0,
+canvas.width,
+canvas.height
+);
+
+particles.forEach(p=>{
+
+ctx.beginPath();
+
+ctx.fillStyle=
+`rgba(220,245,255,${p.alpha})`;
+
+ctx.shadowBlur=15;
+ctx.shadowColor="#7ee7ff";
+
+ctx.arc(
+p.x,
+p.y,
+p.size,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+p.y+=p.speed;
+p.x+=p.drift;
+
+if(p.y>canvas.height){
+
+p.y=-10;
+p.x=Math.random()*canvas.width;
+
+}
+
+});
+
+requestAnimationFrame(animate);
+
+}
+
+animate();
+
+</script>
+
+</body>
+</html>
